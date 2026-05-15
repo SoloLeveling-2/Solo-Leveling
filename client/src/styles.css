@@ -879,6 +879,11 @@ tr:hover td { background: rgba(90, 170, 255, 0.05); }
   border: 0;
 }
 
+.media-image-link {
+  display: block;
+  background: rgba(0, 0, 0, 0.35);
+}
+
 .media-image {
   width: 100%;
   display: block;
@@ -897,10 +902,20 @@ tr:hover td { background: rgba(90, 170, 255, 0.05); }
   color: var(--text-dim);
 }
 
-.media-placeholder .icon {
-  font-size: 38px;
-  opacity: 0.6;
-  filter: drop-shadow(0 0 12px var(--accent-glow));
+.placeholder-badge {
+  width: 58px;
+  height: 58px;
+  border: 1px solid rgba(90, 170, 255, 0.35);
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 18px;
+  letter-spacing: 2px;
+  color: var(--accent-strong);
+  background: radial-gradient(circle, rgba(90, 170, 255, 0.18), rgba(7, 9, 20, 0.7));
+  box-shadow: 0 0 18px var(--accent-glow-soft);
 }
 
 .media-placeholder p {
@@ -938,6 +953,36 @@ tr:hover td { background: rgba(90, 170, 255, 0.05); }
   border-color: var(--accent);
   box-shadow: 0 0 10px var(--accent-glow-soft);
   background: rgba(90, 170, 255, 0.1);
+}
+
+.media-guidance {
+  border-top: 1px solid var(--border);
+  padding: 12px 14px 14px;
+  background: linear-gradient(180deg, rgba(90, 170, 255, 0.06), rgba(7, 9, 20, 0.35));
+}
+
+.media-guidance-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent-strong);
+}
+
+.media-guidance p {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.media-guidance ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+  color: var(--text-dim);
+  font-size: 12px;
+  line-height: 1.45;
 }
 
 /* ─── Day cards ─────────────────────────────────────────── */

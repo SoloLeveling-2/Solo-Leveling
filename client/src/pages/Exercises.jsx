@@ -10,6 +10,7 @@ const empty = {
   sets: '',
   reps: '',
   notes: '',
+  beginnerExplanation: '',
   videoUrl: '',
   imageUrl: '',
   instructions: '',
@@ -46,6 +47,7 @@ export default function Exercises() {
       sets: e.sets ?? '',
       reps: e.reps ?? '',
       notes: e.notes || '',
+      beginnerExplanation: e.beginnerExplanation || '',
       videoUrl: e.videoUrl || '',
       imageUrl: e.imageUrl || '',
       instructions: (e.instructions || []).join('\n'),
@@ -141,6 +143,12 @@ export default function Exercises() {
               value={form.notes}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
+            <textarea
+              placeholder="Beginner explanation (what this trains, how it should feel, and how to scale it)"
+              value={form.beginnerExplanation}
+              onChange={(e) => setForm({ ...form, beginnerExplanation: e.target.value })}
+              rows={2}
+            />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
               <input
                 placeholder="YouTube URL or video ID"
@@ -165,6 +173,19 @@ export default function Exercises() {
               onChange={(e) => setForm({ ...form, tips: e.target.value })}
               rows={3}
             />
+            {(form.videoUrl || form.imageUrl || form.beginnerExplanation || form.tips) && (
+              <div>
+                <p className="faint" style={{ fontSize: 11, letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8 }}>Live Media Preview</p>
+                <ExerciseMedia
+                  exercise={{
+                    ...form,
+                    name: form.name || 'New Exercise',
+                    tips: form.tips.split('\n').map((l) => l.trim()).filter(Boolean),
+                    instructions: form.instructions.split('\n').map((l) => l.trim()).filter(Boolean)
+                  }}
+                />
+              </div>
+            )}
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
               <button type="button" className="ghost" onClick={cancelEdit}>Cancel</button>
               <button type="submit" className="primary">{editingId ? 'Save Changes' : 'Add to Arsenal'}</button>
