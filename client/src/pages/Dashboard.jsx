@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api } from '../api/client.js';
+import RankSeal from '../components/RankSeal.jsx';
+import StatRadar from '../components/StatRadar.jsx';
+import Tooltip from '../components/Tooltip.jsx';
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -14,6 +17,16 @@ function muscleClass(group) {
   return '';
 }
 
+const BEGINNER_TIPS = [
+  '✦ Consistency beats intensity. 10 daily minutes beats 2 hours once a week.',
+  '✦ Warm up for 5 min before any workout — light cardio or dynamic stretches.',
+  '✦ Form > reps. Slow and controlled wins every time.',
+  '✦ Rest days are part of the program — your muscles grow when you rest.',
+  '✦ Hydrate before, during, and after training.',
+  '✦ Log every workout. Tracking progress is half the battle.',
+  '✦ Sleep 7-9 hours. Recovery is when you actually get stronger.'
+];
+
 export default function Dashboard() {
   const [checklist, setChecklist] = useState([]);
   const [exercises, setExercises] = useState([]);
@@ -21,6 +34,7 @@ export default function Dashboard() {
   const [schedule, setSchedule] = useState({});
   const [meals, setMeals] = useState([]);
   const [stats, setStats] = useState(null);
+  const [profile, setProfile] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -29,14 +43,16 @@ export default function Dashboard() {
       api.get('/weights'),
       api.get('/schedule'),
       api.get('/meals'),
-      api.get('/stats')
-    ]).then(([cl, ex, w, sc, ml, st]) => {
+      api.get('/stats'),
+      api.get('/profile')
+    ]).then(([cl, ex, w, sc, ml, st, pr]) => {
       setChecklist(cl.items);
       setExercises(ex);
       setWeights(w);
       setSchedule(sc);
       setMeals(ml);
       setStats(st);
+      setProfile(pr);
     });
   }, []);
 
@@ -57,16 +73,20 @@ export default function Dashboard() {
   const todayProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0);
 
   const hour = new Date().getHours();
-  const greeting = hour < 6 ? 'Hunter, the dungeon never sleeps'
-    : hour < 12 ? 'Good morning, hunter'
-    : hour < 18 ? 'Hunter, the system is watching'
-    : 'Hunter, the night calls';
+  const name = profile?.name || 'Hunter';
+  const greeting = hour < 6 ? `The dungeon never sleeps, ${name}`
+    : hour < 12 ? `Good morning, ${name}`
+    : hour < 18 ? `${name}, the system is watching`
+    : `Good evening, ${name}`;
+
+  const tip = BEGINNER_TIPS[new Date().getDate() % BEGINNER_TIPS.length];
+  const isBeginner = stats?.totalCompleted < 7;
 
   return (
     <div>
       <div className="hero">
         <div className="hero-top">
-          <div>
+          <div className="hero-left">
             <p className="hero-greeting">[ Status Window ]</p>
             <h1 className="hero-title">{greeting}</h1>
             <p className="muted" style={{ marginTop: 6 }}>
@@ -80,12 +100,15 @@ export default function Dashboard() {
             </p>
           </div>
           {stats && (
-            <div className="hero-rank-badge">
-              <span className="rank-label">Hunter Rank</span>
-              <span className="rank-value">{stats.rank}</span>
-              <span className="faint" style={{ fontSize: 11, marginTop: 4 }}>
-                LV {stats.level} · {stats.xp} XP
-              </span>
+            <div className="hero-rank-block">
+              <RankSeal rank={stats.rank} size={88} />
+              <div>
+                <div className="rank-label">Hunter Rank</div>
+                <div className="rank-value">{stats.rank}</div>
+                <div className="faint" style={{ fontSize: 11, marginTop: 4 }}>
+                  LV {stats.level} · {stats.xp} XP
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -114,7 +137,7 @@ export default function Dashboard() {
               </div>
               <p className="faint" style={{ fontSize: 11, marginTop: 6 }}>
                 {stats.nextRank
-                  ? `${stats.daysToNextRank} more completed quest day${stats.daysToNextRank === 1 ? '' : 's'} to ${stats.nextRank}`
+                  ? `${stats.daysToNextRank} more quest day${stats.daysToNextRank === 1 ? '' : 's'} to ${stats.nextRank}`
                   : 'You have reached the highest rank.'}
               </p>
             </div>
@@ -126,17 +149,17 @@ export default function Dashboard() {
         <div className="panel stat">
           <span className="stat-label">Streak</span>
           <span className="stat-value gold">{stats?.currentStreak ?? 0}🔥</span>
-          <span className="stat-sub">consecutive days</span>
+          <span className="stat-sub">Best: {stats?.bestStreak ?? 0} days</span>
         </div>
         <div className="panel stat">
-          <span className="stat-label">Total Quests Cleared</span>
+          <span className="stat-label">Quests Cleared</span>
           <span className="stat-value purple">{stats?.totalCompleted ?? 0}</span>
           <span className="stat-sub">all-time completions</span>
         </div>
         <div className="panel stat">
-          <span className="stat-label">Current Weight</span>
-          <span className="stat-value">{latestWeight ? `${latestWeight.weight}` : '—'}</span>
-          <span className="stat-sub">{latestWeight ? `kg · ${latestWeight.date}` : 'no entries yet'}</span>
+          <span className="stat-label">Achievements</span>
+          <span className="stat-value">{stats?.achievementsUnlocked ?? 0}/{stats?.achievementsTotal ?? 0}</span>
+          <span className="stat-sub"><Link to="/achievements" style={{ color: 'var(--accent-strong)' }}>View badges →</Link></span>
         </div>
         <div className="panel stat">
           <span className="stat-label">Today's Intake</span>
@@ -145,37 +168,78 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 22 }}>
-        <h3 className="panel-title">Quick Actions</h3>
-        <div className="quick-actions">
-          <Link to="/quest" className="quick-action">
-            <div className="quick-action-icon">✦</div>
-            <div className="quick-action-body">
-              <span className="quick-action-title">Start Daily Quest</span>
-              <span className="quick-action-sub">{completed}/{total} cleared today</span>
-            </div>
-          </Link>
-          <Link to="/meals" className="quick-action">
-            <div className="quick-action-icon">◍</div>
-            <div className="quick-action-body">
-              <span className="quick-action-title">Log a Meal</span>
-              <span className="quick-action-sub">{todayMeals.length} logged today</span>
-            </div>
-          </Link>
-          <Link to="/weight" className="quick-action">
-            <div className="quick-action-icon">◎</div>
-            <div className="quick-action-body">
-              <span className="quick-action-title">Log Weight</span>
-              <span className="quick-action-sub">{latestWeight ? `${latestWeight.weight} kg` : 'no entries'}</span>
-            </div>
-          </Link>
+      <div className="grid cols-2" style={{ marginTop: 22 }}>
+        <div className="panel">
+          <h3 className="panel-title">Quick Actions</h3>
+          <div className="quick-actions-vert">
+            <Link to="/session" className="quick-action quick-action-primary">
+              <div className="quick-action-icon" style={{ background: 'linear-gradient(135deg, var(--purple), var(--accent))' }}>▶</div>
+              <div className="quick-action-body">
+                <span className="quick-action-title">Start Active Session</span>
+                <span className="quick-action-sub">Guided workout with timer</span>
+              </div>
+            </Link>
+            <Link to="/quest" className="quick-action">
+              <div className="quick-action-icon">✦</div>
+              <div className="quick-action-body">
+                <span className="quick-action-title">Daily Quest</span>
+                <span className="quick-action-sub">{completed}/{total} cleared today</span>
+              </div>
+            </Link>
+            <Link to="/meals" className="quick-action">
+              <div className="quick-action-icon">◍</div>
+              <div className="quick-action-body">
+                <span className="quick-action-title">Log a Meal</span>
+                <span className="quick-action-sub">{todayMeals.length} logged today</span>
+              </div>
+            </Link>
+            <Link to="/weight" className="quick-action">
+              <div className="quick-action-icon">◎</div>
+              <div className="quick-action-body">
+                <span className="quick-action-title">Log Weight</span>
+                <span className="quick-action-sub">{latestWeight ? `${latestWeight.weight} kg` : 'no entries'}</span>
+              </div>
+            </Link>
+          </div>
         </div>
+
+        {stats && (
+          <div className="panel">
+            <h3 className="panel-title">Stat Profile</h3>
+            <div style={{ display: 'flex', justifyContent: 'center' }}>
+              <StatRadar stats={stats.statBreakdown} size={220} />
+            </div>
+            <p className="faint" style={{ fontSize: 12, textAlign: 'center', marginTop: 4 }}>
+              <Tooltip text="Earned from completing strength quests like push-ups, sit-ups, squats">
+                <span style={{ color: 'var(--accent-strong)' }}>STR</span>
+              </Tooltip>
+              {' · '}
+              <Tooltip text="Earned from cardio quests like running">
+                <span style={{ color: 'var(--success)' }}>END</span>
+              </Tooltip>
+              {' · '}
+              <Tooltip text="Built through consecutive days of completing the daily quest">
+                <span style={{ color: 'var(--purple)' }}>DIS</span>
+              </Tooltip>
+            </p>
+          </div>
+        )}
       </div>
+
+      {isBeginner && (
+        <div className="panel panel-purple" style={{ marginTop: 22 }}>
+          <h3 className="panel-title">📖 Beginner Tip</h3>
+          <p style={{ margin: 0, fontSize: 15, color: 'var(--text)' }}>{tip}</p>
+        </div>
+      )}
 
       <div className="panel" style={{ marginTop: 22 }}>
         <div className="flex-between">
           <h3 className="panel-title">Today · {today} · {todayPlan?.focus || 'Rest'}</h3>
-          <Link to="/schedule"><button className="ghost tiny">Edit Schedule</button></Link>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Link to="/session"><button className="primary tiny">Start Session →</button></Link>
+            <Link to="/schedule"><button className="ghost tiny">Edit Schedule</button></Link>
+          </div>
         </div>
         {todayExercises.length === 0 ? (
           <p className="empty">No exercises scheduled. Visit the Schedule page to plan today.</p>

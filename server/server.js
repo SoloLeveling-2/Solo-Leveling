@@ -30,7 +30,8 @@ const DEFAULT_EXERCISES = [
       'Do not let your hips sag or pike up',
       'Drop to your knees if a full push-up is too hard',
       'Quality over quantity — slow controlled reps beat fast sloppy ones'
-    ]
+    ],
+    category: 'strength'
   },
   {
     id: randomUUID(),
@@ -53,7 +54,8 @@ const DEFAULT_EXERCISES = [
       'Exhale on the way up, inhale on the way down',
       'Try crunches as an easier alternative',
       'Plant your feet or have someone hold them if needed'
-    ]
+    ],
+    category: 'strength'
   },
   {
     id: randomUUID(),
@@ -77,7 +79,8 @@ const DEFAULT_EXERCISES = [
       'Keep your weight in your heels and midfoot',
       'Hold onto a doorframe or chair for balance if needed',
       'Box squats (squat down to a chair) are great for beginners'
-    ]
+    ],
+    category: 'strength'
   },
   {
     id: randomUUID(),
@@ -101,30 +104,64 @@ const DEFAULT_EXERCISES = [
       'Increase distance by no more than 10% per week',
       'Invest in proper running shoes',
       'Listen to your body — rest days are essential'
-    ]
+    ],
+    category: 'cardio'
   }
 ];
 
 const DIFFICULTY_PRESETS = {
   Beginner: [
-    { text: '10 Push-ups', difficulty: 'Beginner' },
-    { text: '10 Sit-ups', difficulty: 'Beginner' },
-    { text: '10 Squats', difficulty: 'Beginner' },
-    { text: '1 km Walk/Jog', difficulty: 'Beginner' }
+    { text: '10 Push-ups', difficulty: 'Beginner', category: 'strength' },
+    { text: '10 Sit-ups', difficulty: 'Beginner', category: 'strength' },
+    { text: '10 Squats', difficulty: 'Beginner', category: 'strength' },
+    { text: '1 km Walk/Jog', difficulty: 'Beginner', category: 'cardio' }
   ],
   Intermediate: [
-    { text: '50 Push-ups', difficulty: 'Intermediate' },
-    { text: '50 Sit-ups', difficulty: 'Intermediate' },
-    { text: '50 Squats', difficulty: 'Intermediate' },
-    { text: '5 km Run', difficulty: 'Intermediate' }
+    { text: '50 Push-ups', difficulty: 'Intermediate', category: 'strength' },
+    { text: '50 Sit-ups', difficulty: 'Intermediate', category: 'strength' },
+    { text: '50 Squats', difficulty: 'Intermediate', category: 'strength' },
+    { text: '5 km Run', difficulty: 'Intermediate', category: 'cardio' }
   ],
   Advanced: [
-    { text: '100 Push-ups', difficulty: 'Advanced' },
-    { text: '100 Sit-ups', difficulty: 'Advanced' },
-    { text: '100 Squats', difficulty: 'Advanced' },
-    { text: '10 km Run', difficulty: 'Advanced' }
+    { text: '100 Push-ups', difficulty: 'Advanced', category: 'strength' },
+    { text: '100 Sit-ups', difficulty: 'Advanced', category: 'strength' },
+    { text: '100 Squats', difficulty: 'Advanced', category: 'strength' },
+    { text: '10 km Run', difficulty: 'Advanced', category: 'cardio' }
   ]
 };
+
+const DEFAULT_PROFILE = {
+  name: '',
+  height: null,
+  startWeight: null,
+  goalWeight: null,
+  targetRank: 'S-Rank Hunter',
+  age: null,
+  units: 'metric',
+  onboarded: false,
+  goal: 'general_fitness',
+  createdAt: new Date().toISOString()
+};
+
+const ACHIEVEMENT_DEFS = [
+  { id: 'first_quest', name: 'First Steps', desc: 'Complete your very first daily quest', icon: '🌱', tier: 'bronze', check: (s) => s.completedDays >= 1 },
+  { id: 'streak_3', name: 'Momentum', desc: 'Maintain a 3-day streak', icon: '⚡', tier: 'bronze', check: (s) => s.currentStreak >= 3 || s.bestStreak >= 3 },
+  { id: 'streak_7', name: 'Week-Long Hunter', desc: 'Maintain a 7-day streak', icon: '🔥', tier: 'silver', check: (s) => s.currentStreak >= 7 || s.bestStreak >= 7 },
+  { id: 'streak_30', name: 'Iron Discipline', desc: 'Maintain a 30-day streak', icon: '⚔️', tier: 'gold', check: (s) => s.currentStreak >= 30 || s.bestStreak >= 30 },
+  { id: 'streak_100', name: 'Unbreakable', desc: 'Maintain a 100-day streak', icon: '🏆', tier: 'legendary', check: (s) => s.currentStreak >= 100 || s.bestStreak >= 100 },
+  { id: 'quests_10', name: 'Apprentice Hunter', desc: 'Complete 10 daily quests', icon: '✦', tier: 'bronze', check: (s) => s.completedDays >= 10 },
+  { id: 'quests_30', name: 'Devoted', desc: 'Complete 30 daily quests', icon: '✨', tier: 'silver', check: (s) => s.completedDays >= 30 },
+  { id: 'quests_100', name: 'Centurion', desc: 'Complete 100 daily quests', icon: '⚜️', tier: 'gold', check: (s) => s.completedDays >= 100 },
+  { id: 'rank_s', name: 'S-Rank Hunter', desc: 'Reach the S-Rank', icon: '👑', tier: 'gold', check: (s) => s.completedDays >= 31 },
+  { id: 'rank_monarch', name: 'Monarch', desc: 'Reach the Monarch rank', icon: '🜲', tier: 'legendary', check: (s) => s.completedDays >= 101 },
+  { id: 'meals_10', name: 'Nutritionist', desc: 'Log 10 meals', icon: '🥗', tier: 'bronze', check: (s) => s.totalMeals >= 10 },
+  { id: 'meals_50', name: 'Master Chef', desc: 'Log 50 meals', icon: '🍳', tier: 'silver', check: (s) => s.totalMeals >= 50 },
+  { id: 'weight_5', name: 'Body Awareness', desc: 'Log weight 5 times', icon: '⚖️', tier: 'bronze', check: (s) => s.totalWeights >= 5 },
+  { id: 'weight_30', name: 'Steady Tracker', desc: 'Log weight 30 times', icon: '📊', tier: 'silver', check: (s) => s.totalWeights >= 30 },
+  { id: 'arsenal_10', name: 'Arsenal Builder', desc: 'Create 10 exercises', icon: '🗡️', tier: 'silver', check: (s) => s.totalExercises >= 10 },
+  { id: 'session_first', name: 'First Mission', desc: 'Complete your first workout session', icon: '🎯', tier: 'bronze', check: (s) => s.totalSessions >= 1 },
+  { id: 'session_10', name: 'Mission Veteran', desc: 'Complete 10 workout sessions', icon: '🛡️', tier: 'silver', check: (s) => s.totalSessions >= 10 }
+];
 
 const DEFAULTS = {
   exercises: DEFAULT_EXERCISES,
@@ -143,18 +180,26 @@ const DEFAULTS = {
     id: randomUUID(),
     text: p.text,
     difficulty: p.difficulty,
+    category: p.category,
     done: false
   })),
   checklistDate: new Date().toISOString().slice(0, 10),
   difficulty: 'Beginner',
-  completedDays: []
+  completedDays: [],
+  profile: DEFAULT_PROFILE,
+  sessions: [],
+  questHistory: []
 };
 
 async function readDb() {
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8');
     const parsed = JSON.parse(raw);
-    return { ...DEFAULTS, ...parsed };
+    return {
+      ...DEFAULTS,
+      ...parsed,
+      profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) }
+    };
   } catch (err) {
     if (err.code === 'ENOENT') {
       await writeDb(DEFAULTS);
@@ -191,32 +236,57 @@ function recordCompletionIfFinished(db) {
   const allDone = db.checklist.every((item) => item.done);
   if (allDone && !db.completedDays.includes(db.checklistDate)) {
     db.completedDays = [...db.completedDays, db.checklistDate].sort();
+    db.questHistory = [...(db.questHistory || []), {
+      date: db.checklistDate,
+      difficulty: db.difficulty,
+      items: db.checklist.map((i) => ({ text: i.text, category: i.category }))
+    }];
     return true;
   }
   return false;
 }
 
+function computeStreak(days) {
+  const sorted = [...days].sort();
+  if (sorted.length === 0) return 0;
+  const today = new Date().toISOString().slice(0, 10);
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  const last = sorted[sorted.length - 1];
+  if (last !== today && last !== yesterday) return 0;
+  let streak = 1;
+  for (let i = sorted.length - 2; i >= 0; i--) {
+    const prev = new Date(sorted[i + 1]);
+    prev.setDate(prev.getDate() - 1);
+    const expected = prev.toISOString().slice(0, 10);
+    if (sorted[i] === expected) streak++;
+    else break;
+  }
+  return streak;
+}
+
+function computeBestStreak(days) {
+  const sorted = [...days].sort();
+  if (sorted.length === 0) return 0;
+  let best = 1;
+  let current = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const prev = new Date(sorted[i - 1]);
+    prev.setDate(prev.getDate() + 1);
+    if (prev.toISOString().slice(0, 10) === sorted[i]) {
+      current++;
+      best = Math.max(best, current);
+    } else {
+      current = 1;
+    }
+  }
+  return best;
+}
+
 function computeStats(db) {
   const days = [...db.completedDays].sort();
   const totalCompleted = days.length;
-
-  let currentStreak = 0;
-  if (days.length > 0) {
-    const today = new Date().toISOString().slice(0, 10);
-    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
-    const last = days[days.length - 1];
-
-    if (last === today || last === yesterday) {
-      currentStreak = 1;
-      for (let i = days.length - 2; i >= 0; i--) {
-        const prev = new Date(days[i + 1]);
-        prev.setDate(prev.getDate() - 1);
-        const expected = prev.toISOString().slice(0, 10);
-        if (days[i] === expected) currentStreak++;
-        else break;
-      }
-    }
-  }
+  const currentStreak = computeStreak(days);
+  const bestStreak = computeBestStreak(days);
 
   const ranks = [
     { name: 'E-Rank Hunter', min: 0, max: 0 },
@@ -235,30 +305,72 @@ function computeStats(db) {
     ? Math.min(100, ((totalCompleted - rank.min) / (nextRank.min - rank.min)) * 100)
     : 100;
 
-  const xp = totalCompleted * 100;
+  const xp = totalCompleted * 100 + (db.sessions?.length || 0) * 25;
   const level = Math.floor(Math.sqrt(xp / 50)) + 1;
   const xpForCurrent = ((level - 1) ** 2) * 50;
   const xpForNext = (level ** 2) * 50;
-  const xpProgress = ((xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100;
+  const xpProgress = xpForNext > xpForCurrent
+    ? ((xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100
+    : 0;
 
-  return {
+  const history = db.questHistory || [];
+  const strengthDays = history.filter((h) => h.items?.some((i) => i.category === 'strength')).length;
+  const cardioDays = history.filter((h) => h.items?.some((i) => i.category === 'cardio')).length;
+
+  const stats = {
+    strength: Math.min(100, Math.round(strengthDays * 1.8 + (db.sessions?.length || 0) * 1.5)),
+    endurance: Math.min(100, Math.round(cardioDays * 2.5 + (db.sessions?.length || 0) * 1)),
+    discipline: Math.min(100, Math.round(currentStreak * 4 + totalCompleted * 0.6))
+  };
+
+  const baseStats = {
     rank: rank.name,
+    rankIndex,
     nextRank: nextRank?.name || null,
     progressToNext,
     daysToNextRank: nextRank ? Math.max(0, nextRank.min - totalCompleted) : 0,
     currentStreak,
+    bestStreak,
     totalCompleted,
+    totalMeals: db.meals.length,
+    totalWeights: db.weights.length,
+    totalExercises: db.exercises.length,
+    totalSessions: (db.sessions || []).length,
     xp,
     level,
     xpForCurrent,
     xpForNext,
-    xpProgress
+    xpProgress,
+    statBreakdown: stats
   };
+
+  const unlocked = ACHIEVEMENT_DEFS.filter((a) => a.check(baseStats));
+  baseStats.achievementsUnlocked = unlocked.length;
+  baseStats.achievementsTotal = ACHIEVEMENT_DEFS.length;
+
+  return baseStats;
 }
 
 const app = express();
 app.use(cors());
-app.use(express.json({ limit: '1mb' }));
+app.use(express.json({ limit: '2mb' }));
+
+// --- Profile ---
+app.get('/api/profile', async (_req, res) => {
+  const db = await readDb();
+  res.json(db.profile);
+});
+
+app.put('/api/profile', async (req, res) => {
+  const allowed = ['name', 'height', 'startWeight', 'goalWeight', 'targetRank', 'age', 'units', 'onboarded', 'goal'];
+  const updated = await mutate((db) => {
+    for (const key of allowed) {
+      if (key in req.body) db.profile[key] = req.body[key];
+    }
+    return db.profile;
+  });
+  res.json(updated);
+});
 
 // --- Exercises ---
 app.get('/api/exercises', async (_req, res) => {
@@ -267,7 +379,7 @@ app.get('/api/exercises', async (_req, res) => {
 });
 
 app.post('/api/exercises', async (req, res) => {
-  const { name, muscleGroup, sets, reps, notes, videoUrl, imageUrl, instructions, tips, youtubeQuery } = req.body;
+  const { name, muscleGroup, sets, reps, notes, videoUrl, imageUrl, instructions, tips, youtubeQuery, category } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const exercise = {
     id: randomUUID(),
@@ -279,6 +391,7 @@ app.post('/api/exercises', async (req, res) => {
     videoUrl: videoUrl || '',
     imageUrl: imageUrl || '',
     youtubeQuery: youtubeQuery || '',
+    category: category || (muscleGroup && /cardio|run/i.test(muscleGroup) ? 'cardio' : 'strength'),
     instructions: Array.isArray(instructions) ? instructions : (instructions ? [instructions] : []),
     tips: Array.isArray(tips) ? tips : (tips ? [tips] : [])
   };
@@ -397,9 +510,15 @@ app.get('/api/checklist', async (_req, res) => {
 });
 
 app.post('/api/checklist', async (req, res) => {
-  const { text, difficulty } = req.body;
+  const { text, difficulty, category } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
-  const item = { id: randomUUID(), text, done: false, difficulty: difficulty || 'Custom' };
+  const item = {
+    id: randomUUID(),
+    text,
+    done: false,
+    difficulty: difficulty || 'Custom',
+    category: category || 'strength'
+  };
   await mutate((db) => db.checklist.push(item));
   res.status(201).json(item);
 });
@@ -438,6 +557,7 @@ app.post('/api/checklist/preset', async (req, res) => {
       id: randomUUID(),
       text: p.text,
       difficulty: p.difficulty,
+      category: p.category,
       done: false
     }));
   });
@@ -445,10 +565,93 @@ app.post('/api/checklist/preset', async (req, res) => {
   res.json({ items: db.checklist, difficulty: db.difficulty });
 });
 
+// --- Workout Sessions ---
+app.get('/api/sessions', async (_req, res) => {
+  const db = await readDb();
+  res.json([...(db.sessions || [])].sort((a, b) => (b.startTime || '').localeCompare(a.startTime || '')));
+});
+
+app.post('/api/sessions', async (req, res) => {
+  const { exercises = [], focus = '', startTime, endTime, durationSeconds = 0, notes = '' } = req.body;
+  const session = {
+    id: randomUUID(),
+    date: (startTime || new Date().toISOString()).slice(0, 10),
+    focus,
+    startTime: startTime || new Date().toISOString(),
+    endTime: endTime || new Date().toISOString(),
+    durationSeconds: Number(durationSeconds) || 0,
+    exercises,
+    notes
+  };
+  await mutate((db) => { db.sessions = [...(db.sessions || []), session]; });
+  res.status(201).json(session);
+});
+
+app.delete('/api/sessions/:id', async (req, res) => {
+  const { id } = req.params;
+  await mutate((db) => {
+    db.sessions = (db.sessions || []).filter((s) => s.id !== id);
+  });
+  res.status(204).end();
+});
+
 // --- Stats ---
 app.get('/api/stats', async (_req, res) => {
   const db = await readDb();
   res.json(computeStats(db));
+});
+
+// --- Achievements ---
+app.get('/api/achievements', async (_req, res) => {
+  const db = await readDb();
+  const stats = computeStats(db);
+  const achievements = ACHIEVEMENT_DEFS.map((a) => ({
+    id: a.id,
+    name: a.name,
+    desc: a.desc,
+    icon: a.icon,
+    tier: a.tier,
+    unlocked: a.check(stats)
+  }));
+  res.json(achievements);
+});
+
+// --- History / Progress ---
+app.get('/api/history', async (_req, res) => {
+  const db = await readDb();
+  const completedDays = [...db.completedDays].sort();
+  const last90 = [];
+  const now = new Date();
+  for (let i = 89; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const iso = d.toISOString().slice(0, 10);
+    last90.push({ date: iso, completed: completedDays.includes(iso) });
+  }
+  res.json({
+    completedDays,
+    last90,
+    questHistory: db.questHistory || [],
+    weights: [...db.weights].sort((a, b) => a.date.localeCompare(b.date)),
+    sessions: db.sessions || []
+  });
+});
+
+// --- Reset (for testing) ---
+app.post('/api/reset', async (_req, res) => {
+  const fresh = {
+    ...DEFAULTS,
+    exercises: DEFAULT_EXERCISES.map((e) => ({ ...e, id: randomUUID() })),
+    checklist: DIFFICULTY_PRESETS.Beginner.map((p) => ({
+      id: randomUUID(),
+      text: p.text,
+      difficulty: p.difficulty,
+      category: p.category,
+      done: false
+    }))
+  };
+  await writeDb(fresh);
+  res.json({ ok: true });
 });
 
 const PORT = process.env.PORT || 4000;
