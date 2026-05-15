@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+const TODAY_JS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
 
 export default function Schedule() {
   const [schedule, setSchedule] = useState(null);
@@ -38,15 +39,16 @@ export default function Schedule() {
   return (
     <div>
       <h1 className="page-title">[ WEEKLY SCHEDULE ]</h1>
-      <p className="page-sub">Plan your training cycle, hunter.</p>
+      <p className="page-sub">Plan your training cycle. Click a day to assign exercises and set a focus.</p>
 
       <div className="grid cols-3">
         {DAYS.map((day) => {
           const plan = schedule[day];
           const dayExs = exercises.filter((e) => plan.exerciseIds.includes(e.id));
+          const isToday = day === TODAY_JS;
           return (
-            <div key={day} className="day-card">
-              <h4>{day}</h4>
+            <div key={day} className={`day-card${isToday ? ' today' : ''}`}>
+              <h4>{day}{isToday && ' · TODAY'}</h4>
               <input
                 className="focus-input"
                 placeholder="Focus (e.g. Push Day)"
@@ -68,20 +70,17 @@ export default function Schedule() {
                 )}
               </div>
               <details>
-                <summary className="muted" style={{ cursor: 'pointer', fontSize: 12 }}>
-                  Assign exercises ({exercises.length})
-                </summary>
-                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <summary>Assign exercises ({exercises.length})</summary>
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
                   {exercises.length === 0 && <span className="empty">Add exercises first</span>}
                   {exercises.map((e) => (
-                    <label key={e.id} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13 }}>
+                    <label key={e.id} className="toggle-row">
                       <input
                         type="checkbox"
                         checked={plan.exerciseIds.includes(e.id)}
                         onChange={() => toggleExercise(day, e.id)}
-                        style={{ width: 'auto', minWidth: 0 }}
                       />
-                      {e.name}
+                      <span>{e.name} <span className="faint">· {e.muscleGroup || '—'}</span></span>
                     </label>
                   ))}
                 </div>
