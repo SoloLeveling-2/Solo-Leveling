@@ -4,6 +4,7 @@ import { api } from '../api/client.js';
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 const TRAINING_DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 const REST_DAYS = ['Saturday', 'Sunday'];
+const REST_FOCUS = { Saturday: 'Rest / Mobility', Sunday: 'Full Rest' };
 const TODAY_JS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'][new Date().getDay()];
 
 function muscleClass(group) {
@@ -65,7 +66,7 @@ export default function Schedule() {
   useEffect(() => { load(); }, []);
 
   const saveFocus = async (day) => {
-    await api.put(`/schedule/${day}`, { focus: drafts[day] });
+    await api.put(`/schedule/${day}`, { focus: drafts[day] || REST_FOCUS[day] || '' });
     load();
   };
 
@@ -91,11 +92,13 @@ export default function Schedule() {
   if (!schedule) return <p className="muted">Loading…</p>;
 
   const weekendHasExercises = REST_DAYS.some((day) => (schedule[day]?.exerciseIds || []).length > 0);
+  const weekendRestReady = REST_DAYS.every((day) => (schedule[day]?.focus || '') === REST_FOCUS[day] && (schedule[day]?.exerciseIds || []).length === 0);
   const activePlan = schedule[activeDay];
   const activeExercises = (activePlan?.exerciseIds || []).map((id) => exerciseMap[id]).filter(Boolean);
 
   const renderDayCard = (day, rest = false) => {
     const plan = schedule[day];
+    const displayFocus = rest ? (plan.focus || REST_FOCUS[day]) : plan.focus;
     const dayExs = (plan.exerciseIds || []).map((id) => exerciseMap[id]).filter(Boolean);
     const isToday = day === TODAY_JS;
     const isActive = day === activeDay;
@@ -110,7 +113,7 @@ export default function Schedule() {
         <input
           className="focus-input"
           placeholder={rest ? 'Rest focus' : 'Training focus'}
-          value={drafts[day]}
+          value={drafts[day] || displayFocus}
           onChange={(e) => setDrafts({ ...drafts, [day]: e.target.value })}
           onBlur={() => saveFocus(day)}
         />
@@ -136,9 +139,11 @@ export default function Schedule() {
           <h1 className="page-title">[ WEEKLY SCHEDULE ]</h1>
           <p className="page-sub">Plan Monday–Friday training while protecting recovery on the weekend.</p>
         </div>
-        {weekendHasExercises && (
-          <button type="button" className="primary" onClick={setRestDayDefaults}>Set weekends as rest days</button>
-        )}
+        <button type="button" className="primary weekend-rest-button" onClick={setRestDayDefaults}>
+          Set weekends as rest days
+          {weekendRestReady && <span>Active</span>}
+          {weekendHasExercises && <span>Clears weekend assignments</span>}
+        </button>
       </div>
 
       <div className="schedule-layout">
@@ -171,7 +176,7 @@ export default function Schedule() {
             <div>
               <p className="eyebrow">Assignment panel</p>
               <h3>{activeDay}</h3>
-              <span className="muted">{activePlan.focus || (REST_DAYS.includes(activeDay) ? 'Recovery' : 'Training')}</span>
+              <span className="muted">{activePlan.focus || (REST_DAYS.includes(activeDay) ? REST_FOCUS[activeDay] : 'Training')}</span>
             </div>
             {activeDay === TODAY_JS && <span className="today-badge large">Today</span>}
           </div>

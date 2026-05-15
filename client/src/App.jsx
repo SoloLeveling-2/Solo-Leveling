@@ -16,6 +16,8 @@ import { ToastProvider } from './contexts/ToastContext.jsx';
 import { ConfirmProvider } from './contexts/ConfirmContext.jsx';
 import RankSeal from './components/RankSeal.jsx';
 
+const APP_VERSION_LABEL = 'Version: PR5 media + meals + schedule';
+
 const NAV = [
   { to: '/', label: 'Dashboard', end: true, icon: '◈' },
   { to: '/quest', label: 'Daily Quest', icon: '✦' },
@@ -85,6 +87,10 @@ function Shell() {
             </NavLink>
           ))}
         </nav>
+        <div className="app-version-badge" title="Local build marker">
+          <span className="app-version-dot" aria-hidden="true" />
+          <span>{APP_VERSION_LABEL}</span>
+        </div>
         {stats && (
           <div className="sidebar-rank">
             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 6 }}>
