@@ -1,7 +1,8 @@
-import { useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { api } from '../api/client.js';
 import ExerciseMedia from '../components/ExerciseMedia.jsx';
+import { useToast } from '../contexts/ToastContext.jsx';
+import { useConfirm } from '../contexts/ConfirmContext.jsx';
 
 const empty = {
   name: '',
@@ -26,6 +27,8 @@ function muscleClass(group) {
 }
 
 export default function Exercises() {
+  const toast = useToast();
+  const confirm = useConfirm();
   const [exercises, setExercises] = useState([]);
   const [form, setForm] = useState(empty);
   const [editingId, setEditingId] = useState(null);
@@ -68,16 +71,25 @@ export default function Exercises() {
     };
     if (editingId) {
       await api.put(`/exercises/${editingId}`, payload);
+      toast(`${payload.name} updated.`, { type: 'success' });
     } else {
       await api.post('/exercises', payload);
+      toast(`${payload.name} added to your arsenal.`, { type: 'success' });
     }
     cancelEdit();
     load();
   };
 
-  const remove = async (id) => {
-    if (!confirm('Remove this exercise from your arsenal?')) return;
+  const remove = async (id, name) => {
+    const ok = await confirm({
+      title: 'Remove exercise?',
+      message: `This will remove "${name}" from your arsenal and unassign it from any scheduled days.`,
+      confirmText: 'Remove',
+      danger: true
+    });
+    if (!ok) return;
     await api.del(`/exercises/${id}`);
+    toast(`${name} removed.`, { type: 'info' });
     load();
   };
 
@@ -203,7 +215,7 @@ export default function Exercises() {
               </div>
               <div className="exercise-card-actions">
                 <button className="ghost tiny" onClick={() => startEdit(e)}>Edit</button>
-                <button className="danger tiny" onClick={() => remove(e.id)}>Delete</button>
+                <button className="danger tiny" onClick={() => remove(e.id, e.name)}>Delete</button>
               </div>
             </article>
           ))}

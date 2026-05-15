@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client.js';
 import ExerciseMedia from '../components/ExerciseMedia.jsx';
+import { useToast } from '../contexts/ToastContext.jsx';
+import { useConfirm } from '../contexts/ConfirmContext.jsx';
 
 const DIFFICULTIES = ['Beginner', 'Intermediate', 'Advanced'];
 
@@ -16,6 +18,8 @@ function matchExercise(text, exercises) {
 }
 
 export default function Checklist() {
+  const toast = useToast();
+  const confirm = useConfirm();
   const [items, setItems] = useState([]);
   const [date, setDate] = useState('');
   const [difficulty, setDifficulty] = useState('Beginner');
@@ -41,6 +45,11 @@ export default function Checklist() {
     if (result.completionRecorded) {
       setJustCompleted(true);
       setTimeout(() => setJustCompleted(false), 6000);
+      toast('Quest cleared. The system has recorded this day.', {
+        type: 'achievement',
+        title: '[ Quest Complete ]',
+        duration: 5500
+      });
     }
     loadAll();
   };
@@ -60,11 +69,17 @@ export default function Checklist() {
 
   const switchDifficulty = async (level) => {
     if (level === difficulty) return;
-    const replaceCurrent = items.length === 0 ||
-      window.confirm(`Replace current quest list with ${level} preset?\nThis will reset today's progress on these items.`);
-    if (!replaceCurrent) return;
+    if (items.length > 0) {
+      const ok = await confirm({
+        title: `Switch to ${level}?`,
+        message: `This will replace your current quest list with the ${level} preset and reset today's progress on these items.`,
+        confirmText: `Switch to ${level}`
+      });
+      if (!ok) return;
+    }
     await api.post('/checklist/preset', { difficulty: level });
     setExpanded({});
+    toast(`Difficulty set to ${level}.`, { type: 'info' });
     loadAll();
   };
 
