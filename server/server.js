@@ -6,16 +6,17 @@ import { fileURLToPath } from 'node:url';
 import { randomUUID } from 'node:crypto';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const DATA_FILE = path.join(__dirname, 'data', 'db.json');
+const DATA_FILE = process.env.DATA_FILE || path.join(__dirname, 'data', 'db.json');
 
 const DEFAULT_EXERCISES = [
   {
-    id: randomUUID(),
+    id: 'push-ups',
     name: 'Push-ups',
     muscleGroup: 'Chest',
     sets: 3,
     reps: 10,
     notes: 'Daily quest staple',
+    beginnerExplanation: 'A bodyweight chest, shoulder, and triceps exercise. Keep the movement slow and controlled; knee push-ups are a valid starting point.',
     videoUrl: '',
     imageUrl: '',
     youtubeQuery: 'how to do a push up proper form beginner',
@@ -34,12 +35,13 @@ const DEFAULT_EXERCISES = [
     category: 'strength'
   },
   {
-    id: randomUUID(),
+    id: 'sit-ups',
     name: 'Sit-ups',
     muscleGroup: 'Core',
     sets: 3,
     reps: 10,
     notes: 'Daily quest staple',
+    beginnerExplanation: 'A core exercise that trains trunk flexion. Move from your abs instead of pulling your head or neck.',
     videoUrl: '',
     imageUrl: '',
     youtubeQuery: 'how to do a sit up proper form beginner',
@@ -58,12 +60,13 @@ const DEFAULT_EXERCISES = [
     category: 'strength'
   },
   {
-    id: randomUUID(),
+    id: 'squats',
     name: 'Squats',
     muscleGroup: 'Legs',
     sets: 3,
     reps: 10,
     notes: 'Daily quest staple',
+    beginnerExplanation: 'A foundational lower-body pattern for quads, glutes, and balance. Use a chair target until depth feels safe and repeatable.',
     videoUrl: '',
     imageUrl: '',
     youtubeQuery: 'how to do a bodyweight squat proper form beginner',
@@ -83,12 +86,13 @@ const DEFAULT_EXERCISES = [
     category: 'strength'
   },
   {
-    id: randomUUID(),
+    id: 'run',
     name: 'Run',
     muscleGroup: 'Cardio',
     sets: 1,
     reps: 1,
     notes: 'Daily quest staple — 10 km goal',
+    beginnerExplanation: 'Cardio work that should begin conversational and easy. Walking intervals count while your joints and lungs adapt.',
     videoUrl: '',
     imageUrl: '',
     youtubeQuery: 'beginner running form tips couch to 5k',
@@ -163,47 +167,80 @@ const ACHIEVEMENT_DEFS = [
   { id: 'session_10', name: 'Mission Veteran', desc: 'Complete 10 workout sessions', icon: '🛡️', tier: 'silver', check: (s) => s.totalSessions >= 10 }
 ];
 
-const DEFAULTS = {
-  exercises: DEFAULT_EXERCISES,
-  schedule: {
-    Monday: { focus: 'Push Day', exerciseIds: [] },
-    Tuesday: { focus: 'Pull Day', exerciseIds: [] },
-    Wednesday: { focus: 'Leg Day', exerciseIds: [] },
-    Thursday: { focus: 'Cardio', exerciseIds: [] },
-    Friday: { focus: 'Upper Body', exerciseIds: [] },
-    Saturday: { focus: 'Full Body', exerciseIds: [] },
-    Sunday: { focus: 'Rest / Mobility', exerciseIds: [] }
-  },
-  meals: [],
-  weights: [],
-  checklist: DIFFICULTY_PRESETS.Beginner.map((p) => ({
+function clone(value) {
+  return structuredClone(value);
+}
+
+function createDefaultChecklist() {
+  return DIFFICULTY_PRESETS.Beginner.map((p) => ({
     id: randomUUID(),
     text: p.text,
     difficulty: p.difficulty,
     category: p.category,
     done: false
-  })),
-  checklistDate: new Date().toISOString().slice(0, 10),
-  difficulty: 'Beginner',
-  completedDays: [],
-  profile: DEFAULT_PROFILE,
-  sessions: [],
-  questHistory: []
-};
+  }));
+}
+
+function createDefaultDb() {
+  return {
+    exercises: clone(DEFAULT_EXERCISES),
+    schedule: {
+      Monday: { focus: 'Push Day', exerciseIds: ['push-ups'] },
+      Tuesday: { focus: 'Pull Day', exerciseIds: ['sit-ups'] },
+      Wednesday: { focus: 'Leg Day', exerciseIds: ['squats'] },
+      Thursday: { focus: 'Cardio', exerciseIds: ['run'] },
+      Friday: { focus: 'Upper Body', exerciseIds: ['push-ups', 'sit-ups'] },
+      Saturday: { focus: 'Full Body', exerciseIds: ['push-ups', 'sit-ups', 'squats'] },
+      Sunday: { focus: 'Rest / Mobility', exerciseIds: [] }
+    },
+    meals: [],
+    weights: [],
+    checklist: createDefaultChecklist(),
+    checklistDate: new Date().toISOString().slice(0, 10),
+    difficulty: 'Beginner',
+    completedDays: [],
+    profile: { ...DEFAULT_PROFILE, createdAt: new Date().toISOString() },
+    sessions: [],
+    questHistory: []
+  };
+}
+
+function mergeDb(parsed = {}) {
+  const defaults = createDefaultDb();
+  const schedule = { ...defaults.schedule, ...(parsed.schedule || {}) };
+
+  for (const day of Object.keys(schedule)) {
+    schedule[day] = {
+      ...(defaults.schedule[day] || { focus: day, exerciseIds: [] }),
+      ...(schedule[day] || {})
+    };
+    if (!Array.isArray(schedule[day].exerciseIds)) schedule[day].exerciseIds = [];
+  }
+
+  return {
+    ...defaults,
+    ...parsed,
+    exercises: Array.isArray(parsed.exercises) ? parsed.exercises : defaults.exercises,
+    schedule,
+    meals: Array.isArray(parsed.meals) ? parsed.meals : defaults.meals,
+    weights: Array.isArray(parsed.weights) ? parsed.weights : defaults.weights,
+    checklist: Array.isArray(parsed.checklist) ? parsed.checklist : defaults.checklist,
+    completedDays: Array.isArray(parsed.completedDays) ? parsed.completedDays : defaults.completedDays,
+    sessions: Array.isArray(parsed.sessions) ? parsed.sessions : defaults.sessions,
+    questHistory: Array.isArray(parsed.questHistory) ? parsed.questHistory : defaults.questHistory,
+    profile: { ...defaults.profile, ...(parsed.profile || {}) }
+  };
+}
 
 async function readDb() {
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8');
-    const parsed = JSON.parse(raw);
-    return {
-      ...DEFAULTS,
-      ...parsed,
-      profile: { ...DEFAULT_PROFILE, ...(parsed.profile || {}) }
-    };
+    return mergeDb(JSON.parse(raw));
   } catch (err) {
     if (err.code === 'ENOENT') {
-      await writeDb(DEFAULTS);
-      return DEFAULTS;
+      const fresh = createDefaultDb();
+      await writeDb(fresh);
+      return fresh;
     }
     throw err;
   }
@@ -379,7 +416,7 @@ app.get('/api/exercises', async (_req, res) => {
 });
 
 app.post('/api/exercises', async (req, res) => {
-  const { name, muscleGroup, sets, reps, notes, videoUrl, imageUrl, instructions, tips, youtubeQuery, category } = req.body;
+  const { name, muscleGroup, sets, reps, notes, beginnerExplanation, videoUrl, imageUrl, instructions, tips, youtubeQuery, category } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const exercise = {
     id: randomUUID(),
@@ -388,6 +425,7 @@ app.post('/api/exercises', async (req, res) => {
     sets: Number(sets) || 0,
     reps: Number(reps) || 0,
     notes: notes || '',
+    beginnerExplanation: beginnerExplanation || '',
     videoUrl: videoUrl || '',
     imageUrl: imageUrl || '',
     youtubeQuery: youtubeQuery || '',
@@ -639,17 +677,7 @@ app.get('/api/history', async (_req, res) => {
 
 // --- Reset (for testing) ---
 app.post('/api/reset', async (_req, res) => {
-  const fresh = {
-    ...DEFAULTS,
-    exercises: DEFAULT_EXERCISES.map((e) => ({ ...e, id: randomUUID() })),
-    checklist: DIFFICULTY_PRESETS.Beginner.map((p) => ({
-      id: randomUUID(),
-      text: p.text,
-      difficulty: p.difficulty,
-      category: p.category,
-      done: false
-    }))
-  };
+  const fresh = createDefaultDb();
   await writeDb(fresh);
   res.json({ ok: true });
 });
