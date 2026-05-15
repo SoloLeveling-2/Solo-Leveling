@@ -62,8 +62,8 @@ export default function ExerciseMedia({ exercise, compact = false, showGuidance 
               : `No saved YouTube embed or image preview for ${exercise.name}. Add a safe URL or open a search below.`}
           </p>
           <div className="media-actions">
-            <a className="media-link" href={youtubeSearchUrl(ytQuery)} target="_blank" rel="noreferrer">
-              ▶ Find YouTube demo
+            <a className="media-link" href={exercise.videoUrl || youtubeSearchUrl(ytQuery)} target="_blank" rel="noreferrer">
+              ▶ Watch on YouTube
             </a>
             <a className="media-link" href={imageSearchUrl(imgQuery)} target="_blank" rel="noreferrer">
               🖼 Find form images

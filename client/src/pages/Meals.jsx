@@ -1,7 +1,20 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { api } from '../api/client.js';
 
 const TYPES = ['Breakfast', 'Lunch', 'Dinner', 'Snack'];
+const PROTEIN_GOAL = 120;
+
+const RECOMMENDED_MEALS = [
+  { name: 'Eggs + Whole-Grain Toast', type: 'Breakfast', calories: 430, protein: 28, note: '3 eggs, 2 slices toast, fruit on the side' },
+  { name: 'Greek Yogurt + Granola', type: 'Breakfast', calories: 360, protein: 30, note: 'Plain Greek yogurt, granola, berries, honey' },
+  { name: 'Chicken Rice Bowl', type: 'Lunch', calories: 620, protein: 48, note: 'Chicken breast, rice, vegetables, light sauce' },
+  { name: 'Tuna Sandwich', type: 'Lunch', calories: 410, protein: 34, note: 'Tuna, whole-grain bread, lettuce, tomato' },
+  { name: 'Protein Smoothie', type: 'Snack', calories: 390, protein: 35, note: 'Protein powder, milk, banana, oats' },
+  { name: 'Turkey Rice Bowl', type: 'Dinner', calories: 590, protein: 44, note: 'Lean turkey, rice, avocado, salsa, greens' },
+  { name: 'Peanut Butter Banana Smoothie', type: 'Snack', calories: 520, protein: 32, note: 'Milk, banana, peanut butter, protein powder' },
+  { name: 'Chicken/Salmon + Potatoes', type: 'Dinner', calories: 650, protein: 50, note: 'Grilled chicken or salmon, roasted potatoes, veggies' }
+];
+
 const empty = () => ({
   name: '',
   calories: '',
@@ -26,6 +39,28 @@ export default function Meals() {
     load();
   };
 
+  const fillMeal = (meal) => {
+    setForm({
+      name: meal.name,
+      calories: meal.calories,
+      protein: meal.protein,
+      type: meal.type,
+      date: new Date().toISOString().slice(0, 10)
+    });
+    setTimeout(() => document.querySelector('.meal-log-panel input')?.focus(), 50);
+  };
+
+  const quickLogMeal = async (meal) => {
+    await api.post('/meals', {
+      name: meal.name,
+      calories: meal.calories,
+      protein: meal.protein,
+      type: meal.type,
+      date: new Date().toISOString().slice(0, 10)
+    });
+    load();
+  };
+
   const remove = async (id) => {
     await api.del(`/meals/${id}`);
     load();
@@ -35,19 +70,21 @@ export default function Meals() {
   const todayMeals = meals.filter((m) => m.date === todayDate);
   const todayCalories = todayMeals.reduce((s, m) => s + m.calories, 0);
   const todayProtein = todayMeals.reduce((s, m) => s + m.protein, 0);
+  const proteinProgress = Math.min(100, Math.round((todayProtein / PROTEIN_GOAL) * 100));
+  const remainingProtein = Math.max(PROTEIN_GOAL - todayProtein, 0);
 
-  const grouped = meals.reduce((acc, m) => {
+  const grouped = useMemo(() => meals.reduce((acc, m) => {
     (acc[m.date] = acc[m.date] || []).push(m);
     return acc;
-  }, {});
+  }, {}), [meals]);
   const dates = Object.keys(grouped).sort((a, b) => b.localeCompare(a));
 
   return (
     <div>
       <h1 className="page-title">[ MEALS ]</h1>
-      <p className="page-sub">Fuel your ascent.</p>
+      <p className="page-sub">Fuel your ascent with simple high-protein meals and daily nutrition tracking.</p>
 
-      <div className="grid cols-2">
+      <div className="grid cols-3 nutrition-stats">
         <div className="panel stat">
           <span className="stat-label">Today's Calories</span>
           <span className="stat-value">{todayCalories} kcal</span>
@@ -55,14 +92,52 @@ export default function Meals() {
         </div>
         <div className="panel stat">
           <span className="stat-label">Today's Protein</span>
-          <span className="stat-value">{todayProtein} g</span>
-          <span className="stat-sub">across {todayMeals.length} entries</span>
+          <span className="stat-value success">{todayProtein} g</span>
+          <span className="stat-sub">{remainingProtein}g remaining to goal</span>
+        </div>
+        <div className="panel stat protein-goal-card">
+          <span className="stat-label">Daily Protein Goal</span>
+          <span className="stat-value">{PROTEIN_GOAL} g</span>
+          <div className="protein-progress" aria-label={`${proteinProgress}% of protein goal complete`}>
+            <span style={{ width: `${proteinProgress}%` }} />
+          </div>
+          <span className="stat-sub">{proteinProgress}% complete</span>
         </div>
       </div>
 
-      <div className="panel" style={{ marginTop: 20 }}>
+      <section className="panel protein-recs-panel" style={{ marginTop: 20 }}>
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">Beginner friendly</p>
+            <h3 className="panel-title">Recommended Protein Meals</h3>
+          </div>
+          <span className="muted">Tap quick log, or fill the form to customize.</span>
+        </div>
+        <div className="meal-card-grid">
+          {RECOMMENDED_MEALS.map((meal) => (
+            <article key={meal.name} className="meal-card">
+              <div className="meal-card-top">
+                <span className="tag">{meal.type}</span>
+                <strong>{meal.protein}g protein</strong>
+              </div>
+              <h4>{meal.name}</h4>
+              <p>{meal.note}</p>
+              <div className="meal-metrics">
+                <span>{meal.calories} kcal</span>
+                <span>{meal.protein}g protein</span>
+              </div>
+              <div className="meal-actions">
+                <button type="button" className="tiny primary" onClick={() => quickLogMeal(meal)}>Quick Log</button>
+                <button type="button" className="tiny ghost" onClick={() => fillMeal(meal)}>Auto-fill</button>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <div className="panel meal-log-panel" style={{ marginTop: 20 }}>
         <h3 className="panel-title">Log Meal</h3>
-        <form className="row" onSubmit={submit}>
+        <form className="row meal-form" onSubmit={submit}>
           <input
             placeholder="Meal name"
             value={form.name}
@@ -108,8 +183,8 @@ export default function Meals() {
           const dayCal = dayMeals.reduce((s, m) => s + m.calories, 0);
           const dayPro = dayMeals.reduce((s, m) => s + m.protein, 0);
           return (
-            <div key={date} className="panel" style={{ marginTop: 20 }}>
-              <div className="flex-between">
+            <div key={date} className="panel meal-history-panel" style={{ marginTop: 20 }}>
+              <div className="flex-between meal-history-heading">
                 <h3 className="panel-title">{date}</h3>
                 <span className="muted">{dayCal} kcal · {dayPro}g protein</span>
               </div>
