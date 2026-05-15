@@ -8,13 +8,126 @@ import { randomUUID } from 'node:crypto';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DATA_FILE = path.join(__dirname, 'data', 'db.json');
 
-const DEFAULTS = {
-  exercises: [
-    { id: randomUUID(), name: 'Push-ups', muscleGroup: 'Chest', sets: 10, reps: 10, notes: 'Daily quest' },
-    { id: randomUUID(), name: 'Sit-ups', muscleGroup: 'Core', sets: 10, reps: 10, notes: 'Daily quest' },
-    { id: randomUUID(), name: 'Squats', muscleGroup: 'Legs', sets: 10, reps: 10, notes: 'Daily quest' },
-    { id: randomUUID(), name: 'Run', muscleGroup: 'Cardio', sets: 1, reps: 1, notes: '10 km daily quest' }
+const DEFAULT_EXERCISES = [
+  {
+    id: randomUUID(),
+    name: 'Push-ups',
+    muscleGroup: 'Chest',
+    sets: 3,
+    reps: 10,
+    notes: 'Daily quest staple',
+    videoUrl: '',
+    imageUrl: '',
+    youtubeQuery: 'how to do a push up proper form beginner',
+    instructions: [
+      'Start in a plank position with hands slightly wider than shoulder-width.',
+      'Keep your body in a straight line from head to heels.',
+      'Lower your chest until it nearly touches the ground.',
+      'Push back up to the starting position, exhaling as you rise.'
+    ],
+    tips: [
+      'Engage your core throughout the movement',
+      'Do not let your hips sag or pike up',
+      'Drop to your knees if a full push-up is too hard',
+      'Quality over quantity — slow controlled reps beat fast sloppy ones'
+    ]
+  },
+  {
+    id: randomUUID(),
+    name: 'Sit-ups',
+    muscleGroup: 'Core',
+    sets: 3,
+    reps: 10,
+    notes: 'Daily quest staple',
+    videoUrl: '',
+    imageUrl: '',
+    youtubeQuery: 'how to do a sit up proper form beginner',
+    instructions: [
+      'Lie on your back with knees bent and feet flat on the floor.',
+      'Place your hands lightly behind your ears or crossed on your chest.',
+      'Engage your core and lift your torso toward your knees.',
+      'Lower your back to the floor with control, then repeat.'
+    ],
+    tips: [
+      'Do not pull on your neck — let your core do the work',
+      'Exhale on the way up, inhale on the way down',
+      'Try crunches as an easier alternative',
+      'Plant your feet or have someone hold them if needed'
+    ]
+  },
+  {
+    id: randomUUID(),
+    name: 'Squats',
+    muscleGroup: 'Legs',
+    sets: 3,
+    reps: 10,
+    notes: 'Daily quest staple',
+    videoUrl: '',
+    imageUrl: '',
+    youtubeQuery: 'how to do a bodyweight squat proper form beginner',
+    instructions: [
+      'Stand with feet shoulder-width apart, toes slightly turned out.',
+      'Lower your hips back and down as if sitting in a chair.',
+      'Keep your chest up and your back straight.',
+      'Descend until your thighs are roughly parallel to the floor.',
+      'Push through your heels to stand back up.'
+    ],
+    tips: [
+      'Knees should track over your toes, not collapse inward',
+      'Keep your weight in your heels and midfoot',
+      'Hold onto a doorframe or chair for balance if needed',
+      'Box squats (squat down to a chair) are great for beginners'
+    ]
+  },
+  {
+    id: randomUUID(),
+    name: 'Run',
+    muscleGroup: 'Cardio',
+    sets: 1,
+    reps: 1,
+    notes: 'Daily quest staple — 10 km goal',
+    videoUrl: '',
+    imageUrl: '',
+    youtubeQuery: 'beginner running form tips couch to 5k',
+    instructions: [
+      'Warm up with a 5 minute brisk walk.',
+      'Begin with a slow, comfortable jog. You should be able to talk.',
+      'Land softly on your midfoot, not your heel.',
+      'Keep an upright posture with relaxed shoulders.',
+      'Cool down with a 5 minute walk and stretching.'
+    ],
+    tips: [
+      'Start with walk/run intervals — 1 min run, 2 min walk',
+      'Increase distance by no more than 10% per week',
+      'Invest in proper running shoes',
+      'Listen to your body — rest days are essential'
+    ]
+  }
+];
+
+const DIFFICULTY_PRESETS = {
+  Beginner: [
+    { text: '10 Push-ups', difficulty: 'Beginner' },
+    { text: '10 Sit-ups', difficulty: 'Beginner' },
+    { text: '10 Squats', difficulty: 'Beginner' },
+    { text: '1 km Walk/Jog', difficulty: 'Beginner' }
   ],
+  Intermediate: [
+    { text: '50 Push-ups', difficulty: 'Intermediate' },
+    { text: '50 Sit-ups', difficulty: 'Intermediate' },
+    { text: '50 Squats', difficulty: 'Intermediate' },
+    { text: '5 km Run', difficulty: 'Intermediate' }
+  ],
+  Advanced: [
+    { text: '100 Push-ups', difficulty: 'Advanced' },
+    { text: '100 Sit-ups', difficulty: 'Advanced' },
+    { text: '100 Squats', difficulty: 'Advanced' },
+    { text: '10 km Run', difficulty: 'Advanced' }
+  ]
+};
+
+const DEFAULTS = {
+  exercises: DEFAULT_EXERCISES,
   schedule: {
     Monday: { focus: 'Push Day', exerciseIds: [] },
     Tuesday: { focus: 'Pull Day', exerciseIds: [] },
@@ -26,13 +139,15 @@ const DEFAULTS = {
   },
   meals: [],
   weights: [],
-  checklist: [
-    { id: randomUUID(), text: '100 Push-ups', done: false },
-    { id: randomUUID(), text: '100 Sit-ups', done: false },
-    { id: randomUUID(), text: '100 Squats', done: false },
-    { id: randomUUID(), text: '10 km Run', done: false }
-  ],
-  checklistDate: new Date().toISOString().slice(0, 10)
+  checklist: DIFFICULTY_PRESETS.Beginner.map((p) => ({
+    id: randomUUID(),
+    text: p.text,
+    difficulty: p.difficulty,
+    done: false
+  })),
+  checklistDate: new Date().toISOString().slice(0, 10),
+  difficulty: 'Beginner',
+  completedDays: []
 };
 
 async function readDb() {
@@ -71,9 +186,79 @@ function rollChecklistIfNewDay(db) {
   return false;
 }
 
+function recordCompletionIfFinished(db) {
+  if (db.checklist.length === 0) return false;
+  const allDone = db.checklist.every((item) => item.done);
+  if (allDone && !db.completedDays.includes(db.checklistDate)) {
+    db.completedDays = [...db.completedDays, db.checklistDate].sort();
+    return true;
+  }
+  return false;
+}
+
+function computeStats(db) {
+  const days = [...db.completedDays].sort();
+  const totalCompleted = days.length;
+
+  let currentStreak = 0;
+  if (days.length > 0) {
+    const today = new Date().toISOString().slice(0, 10);
+    const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+    const last = days[days.length - 1];
+
+    if (last === today || last === yesterday) {
+      currentStreak = 1;
+      for (let i = days.length - 2; i >= 0; i--) {
+        const prev = new Date(days[i + 1]);
+        prev.setDate(prev.getDate() - 1);
+        const expected = prev.toISOString().slice(0, 10);
+        if (days[i] === expected) currentStreak++;
+        else break;
+      }
+    }
+  }
+
+  const ranks = [
+    { name: 'E-Rank Hunter', min: 0, max: 0 },
+    { name: 'D-Rank Hunter', min: 1, max: 3 },
+    { name: 'C-Rank Hunter', min: 4, max: 7 },
+    { name: 'B-Rank Hunter', min: 8, max: 14 },
+    { name: 'A-Rank Hunter', min: 15, max: 30 },
+    { name: 'S-Rank Hunter', min: 31, max: 60 },
+    { name: 'National Level Hunter', min: 61, max: 100 },
+    { name: 'Monarch', min: 101, max: Infinity }
+  ];
+  const rank = ranks.find((r) => totalCompleted >= r.min && totalCompleted <= r.max) || ranks[0];
+  const rankIndex = ranks.indexOf(rank);
+  const nextRank = ranks[rankIndex + 1];
+  const progressToNext = nextRank
+    ? Math.min(100, ((totalCompleted - rank.min) / (nextRank.min - rank.min)) * 100)
+    : 100;
+
+  const xp = totalCompleted * 100;
+  const level = Math.floor(Math.sqrt(xp / 50)) + 1;
+  const xpForCurrent = ((level - 1) ** 2) * 50;
+  const xpForNext = (level ** 2) * 50;
+  const xpProgress = ((xp - xpForCurrent) / (xpForNext - xpForCurrent)) * 100;
+
+  return {
+    rank: rank.name,
+    nextRank: nextRank?.name || null,
+    progressToNext,
+    daysToNextRank: nextRank ? Math.max(0, nextRank.min - totalCompleted) : 0,
+    currentStreak,
+    totalCompleted,
+    xp,
+    level,
+    xpForCurrent,
+    xpForNext,
+    xpProgress
+  };
+}
+
 const app = express();
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '1mb' }));
 
 // --- Exercises ---
 app.get('/api/exercises', async (_req, res) => {
@@ -82,7 +267,7 @@ app.get('/api/exercises', async (_req, res) => {
 });
 
 app.post('/api/exercises', async (req, res) => {
-  const { name, muscleGroup, sets, reps, notes } = req.body;
+  const { name, muscleGroup, sets, reps, notes, videoUrl, imageUrl, instructions, tips, youtubeQuery } = req.body;
   if (!name) return res.status(400).json({ error: 'Name required' });
   const exercise = {
     id: randomUUID(),
@@ -90,7 +275,12 @@ app.post('/api/exercises', async (req, res) => {
     muscleGroup: muscleGroup || '',
     sets: Number(sets) || 0,
     reps: Number(reps) || 0,
-    notes: notes || ''
+    notes: notes || '',
+    videoUrl: videoUrl || '',
+    imageUrl: imageUrl || '',
+    youtubeQuery: youtubeQuery || '',
+    instructions: Array.isArray(instructions) ? instructions : (instructions ? [instructions] : []),
+    tips: Array.isArray(tips) ? tips : (tips ? [tips] : [])
   };
   await mutate((db) => db.exercises.push(exercise));
   res.status(201).json(exercise);
@@ -198,28 +388,35 @@ app.get('/api/checklist', async (_req, res) => {
   const db = await readDb();
   const rolled = rollChecklistIfNewDay(db);
   if (rolled) await writeDb(db);
-  res.json({ items: db.checklist, date: db.checklistDate });
+  res.json({
+    items: db.checklist,
+    date: db.checklistDate,
+    difficulty: db.difficulty,
+    completedDays: db.completedDays
+  });
 });
 
 app.post('/api/checklist', async (req, res) => {
-  const { text } = req.body;
+  const { text, difficulty } = req.body;
   if (!text) return res.status(400).json({ error: 'Text required' });
-  const item = { id: randomUUID(), text, done: false };
+  const item = { id: randomUUID(), text, done: false, difficulty: difficulty || 'Custom' };
   await mutate((db) => db.checklist.push(item));
   res.status(201).json(item);
 });
 
 app.put('/api/checklist/:id', async (req, res) => {
   const { id } = req.params;
+  let completionRecorded = false;
   const updated = await mutate((db) => {
     const item = db.checklist.find((c) => c.id === id);
     if (!item) return null;
     if (typeof req.body.done === 'boolean') item.done = req.body.done;
     if (typeof req.body.text === 'string') item.text = req.body.text;
+    completionRecorded = recordCompletionIfFinished(db);
     return item;
   });
   if (!updated) return res.status(404).json({ error: 'Not found' });
-  res.json(updated);
+  res.json({ ...updated, completionRecorded });
 });
 
 app.delete('/api/checklist/:id', async (req, res) => {
@@ -228,6 +425,30 @@ app.delete('/api/checklist/:id', async (req, res) => {
     db.checklist = db.checklist.filter((c) => c.id !== id);
   });
   res.status(204).end();
+});
+
+app.post('/api/checklist/preset', async (req, res) => {
+  const { difficulty } = req.body;
+  if (!DIFFICULTY_PRESETS[difficulty]) {
+    return res.status(400).json({ error: 'Invalid difficulty' });
+  }
+  await mutate((db) => {
+    db.difficulty = difficulty;
+    db.checklist = DIFFICULTY_PRESETS[difficulty].map((p) => ({
+      id: randomUUID(),
+      text: p.text,
+      difficulty: p.difficulty,
+      done: false
+    }));
+  });
+  const db = await readDb();
+  res.json({ items: db.checklist, difficulty: db.difficulty });
+});
+
+// --- Stats ---
+app.get('/api/stats', async (_req, res) => {
+  const db = await readDb();
+  res.json(computeStats(db));
 });
 
 const PORT = process.env.PORT || 4000;

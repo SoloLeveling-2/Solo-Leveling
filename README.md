@@ -10,12 +10,15 @@ A Solo Leveling–themed full-stack workout tracker. Track exercises, plan a wee
 
 ## Features
 
-- **Dashboard** — daily status overview (quest progress, today's plan, calories, weight)
-- **Daily Quest** — checklist that auto-resets each day (defaults to the classic 100 push-ups / sit-ups / squats / 10 km run)
-- **Exercises** — manage your exercise library
-- **Schedule** — weekly plan with per-day focus and assigned exercises
+- **Dashboard** — Hunter Rank, level + XP, daily streak, today's mission with progress bars, quick actions
+- **Daily Quest** — checklist with **Beginner / Intermediate / Advanced** difficulty presets, expandable "How to" view with embedded YouTube video, step-by-step instructions, and form tips for each exercise
+- **Exercises** — card-based library with video/image embeds, multi-line instructions, and form tips per exercise
+- **Schedule** — weekly plan with per-day focus and assigned exercises (today is highlighted)
 - **Meals** — log meals by type, calories, and protein
 - **Weight** — track body weight over time with a trend chart
+- **Rank system** — completing your daily quest advances you from E-Rank through Monarch
+- **Streak tracking** — consecutive days of cleared quests
+- **YouTube + image embeds** — paste a YouTube URL/ID or image URL on any exercise and it'll render inline
 
 ## Setup
 
@@ -84,5 +87,18 @@ npm start               # starts the API server
 | POST   | `/api/checklist`      | add quest item                   |
 | PUT    | `/api/checklist/:id`  | toggle / edit quest item         |
 | DELETE | `/api/checklist/:id`  | remove quest item                |
+| POST   | `/api/checklist/preset` | switch difficulty preset (Beginner/Intermediate/Advanced) |
+| GET    | `/api/stats`          | hunter rank, level, XP, streak   |
+
+## Adding videos & images
+
+On the **Exercises** page, edit any exercise and paste:
+
+- a **YouTube URL** (`https://www.youtube.com/watch?v=...`, `https://youtu.be/...`, or just the 11-character video ID)
+- an **image URL** (any direct image link)
+
+These appear in the exercise card and inside the Daily Quest "How to" view.
+
+If you haven't set a video yet, each exercise has a one-click "Watch on YouTube" button that opens a tutorial search for that movement.
 
 Arise.
