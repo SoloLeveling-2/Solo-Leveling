@@ -2488,3 +2488,69 @@ tr:hover td { background: rgba(90, 170, 255, 0.05); }
   .meal-history-panel { overflow-x: auto; }
   .assigned-exercise-card { align-items: flex-start; flex-direction: column; }
 }
+
+/* PR5 verification marker */
+.app-version-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(109, 255, 181, 0.42);
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(109, 255, 181, 0.14), rgba(90, 170, 255, 0.1));
+  color: var(--success);
+  font-family: var(--font-display);
+  font-size: 10px;
+  letter-spacing: 1px;
+  line-height: 1.35;
+  text-transform: uppercase;
+  box-shadow: 0 0 18px rgba(109, 255, 181, 0.14);
+}
+
+.app-version-dot {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 8px;
+  border-radius: 50%;
+  background: var(--success);
+  box-shadow: 0 0 12px var(--success-glow);
+}
+
+.weekend-rest-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.weekend-rest-button span {
+  padding: 3px 7px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(3, 5, 13, 0.24);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  text-transform: none;
+}
+
+.featured-protein-section {
+  border-color: rgba(109, 255, 181, 0.5);
+  background:
+    radial-gradient(ellipse at 12% 0%, rgba(109, 255, 181, 0.16), transparent 45%),
+    radial-gradient(ellipse at 100% 0%, rgba(90, 170, 255, 0.14), transparent 45%),
+    rgba(15, 20, 42, 0.78);
+  box-shadow: 0 0 26px rgba(109, 255, 181, 0.12);
+}
+
+.recommended-meals-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 36px);
+  letter-spacing: 2px;
+  color: var(--success);
+  text-transform: uppercase;
+  text-shadow: 0 0 18px rgba(109, 255, 181, 0.28);
+}

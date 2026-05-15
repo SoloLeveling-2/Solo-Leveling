@@ -205,6 +205,10 @@ function createDefaultDb() {
   };
 }
 
+function normalizeExerciseKey(value = '') {
+  return String(value).toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
 function mergeDb(parsed = {}) {
   const defaults = createDefaultDb();
   const schedule = { ...defaults.schedule, ...(parsed.schedule || {}) };
@@ -217,14 +221,22 @@ function mergeDb(parsed = {}) {
     if (!Array.isArray(schedule[day].exerciseIds)) schedule[day].exerciseIds = [];
   }
 
+  if (!schedule.Saturday?.focus?.trim()) schedule.Saturday.focus = 'Rest / Mobility';
+  if (!schedule.Sunday?.focus?.trim()) schedule.Sunday.focus = 'Full Rest';
+
   const defaultExerciseById = Object.fromEntries(defaults.exercises.map((exercise) => [exercise.id, exercise]));
+  const defaultExerciseByName = Object.fromEntries(defaults.exercises.map((exercise) => [normalizeExerciseKey(exercise.name), exercise]));
   const exercises = Array.isArray(parsed.exercises) ? parsed.exercises.map((exercise) => {
-    const defaultExercise = defaultExerciseById[exercise.id];
+    const defaultExercise = defaultExerciseById[exercise.id] || defaultExerciseByName[normalizeExerciseKey(exercise.name)];
     if (!defaultExercise) return exercise;
     return {
       ...exercise,
       videoUrl: exercise.videoUrl || defaultExercise.videoUrl,
-      youtubeQuery: exercise.youtubeQuery || defaultExercise.youtubeQuery
+      youtubeQuery: exercise.youtubeQuery || defaultExercise.youtubeQuery,
+      beginnerExplanation: exercise.beginnerExplanation || defaultExercise.beginnerExplanation,
+      instructions: Array.isArray(exercise.instructions) && exercise.instructions.length > 0 ? exercise.instructions : defaultExercise.instructions,
+      tips: Array.isArray(exercise.tips) && exercise.tips.length > 0 ? exercise.tips : defaultExercise.tips,
+      category: exercise.category || defaultExercise.category
     };
   }) : defaults.exercises;
 
@@ -246,7 +258,12 @@ function mergeDb(parsed = {}) {
 async function readDb() {
   try {
     const raw = await fs.readFile(DATA_FILE, 'utf8');
-    return mergeDb(JSON.parse(raw));
+    const parsed = JSON.parse(raw);
+    const merged = mergeDb(parsed);
+    if (JSON.stringify(parsed) !== JSON.stringify(merged)) {
+      await writeDb(merged);
+    }
+    return merged;
   } catch (err) {
     if (err.code === 'ENOENT') {
       const fresh = createDefaultDb();

@@ -43,6 +43,20 @@ A Solo Leveling–themed full-stack workout tracker. Onboard as a brand-new hunt
 - Glossary tooltips on stats (STR/END/DIS)
 - Session preview panel with warm-up & cool-down guidance
 
+
+## Updating after a merged PR
+
+After merging a pull request on GitHub, update your local checkout before running the app so Vite and Express serve the latest React + API code:
+
+```bash
+git fetch origin
+git pull --ff-only origin main
+npm run install:all
+npm run dev
+```
+
+The sidebar version badge should show `Version: PR5 media + meals + schedule` when the PR5 media, meal, and schedule updates are running locally.
+
 ## Setup
 
 ```bash

@@ -105,34 +105,38 @@ export default function Meals() {
         </div>
       </div>
 
-      <section className="panel protein-recs-panel" style={{ marginTop: 20 }}>
-        <div className="section-heading">
+      <section className="panel protein-recs-panel featured-protein-section" style={{ marginTop: 20 }}>
+        <div className="section-heading protein-section-heading">
           <div>
-            <p className="eyebrow">Beginner friendly</p>
-            <h3 className="panel-title">Recommended Protein Meals</h3>
+            <p className="eyebrow">Beginner friendly quick logs</p>
+            <h2 className="recommended-meals-title">Recommended Protein Meals</h2>
           </div>
           <span className="muted">Tap quick log, or fill the form to customize.</span>
         </div>
-        <div className="meal-card-grid">
-          {RECOMMENDED_MEALS.map((meal) => (
-            <article key={meal.name} className="meal-card">
-              <div className="meal-card-top">
-                <span className="tag">{meal.type}</span>
-                <strong>{meal.protein}g protein</strong>
-              </div>
-              <h4>{meal.name}</h4>
-              <p>{meal.note}</p>
-              <div className="meal-metrics">
-                <span>{meal.calories} kcal</span>
-                <span>{meal.protein}g protein</span>
-              </div>
-              <div className="meal-actions">
-                <button type="button" className="tiny primary" onClick={() => quickLogMeal(meal)}>Quick Log</button>
-                <button type="button" className="tiny ghost" onClick={() => fillMeal(meal)}>Auto-fill</button>
-              </div>
-            </article>
-          ))}
-        </div>
+        {RECOMMENDED_MEALS.length === 0 ? (
+          <p className="empty">Recommended Protein Meals are loading. You can still log a custom meal below.</p>
+        ) : (
+          <div className="meal-card-grid">
+            {RECOMMENDED_MEALS.map((meal) => (
+              <article key={meal.name} className="meal-card">
+                <div className="meal-card-top">
+                  <span className="tag">{meal.type}</span>
+                  <strong>{meal.protein}g protein</strong>
+                </div>
+                <h4>{meal.name}</h4>
+                <p>{meal.note}</p>
+                <div className="meal-metrics">
+                  <span>{meal.calories} kcal</span>
+                  <span>{meal.protein}g protein</span>
+                </div>
+                <div className="meal-actions">
+                  <button type="button" className="tiny primary" onClick={() => quickLogMeal(meal)}>Quick Log</button>
+                  <button type="button" className="tiny ghost" onClick={() => fillMeal(meal)}>Auto-fill</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
       </section>
 
       <div className="panel meal-log-panel" style={{ marginTop: 20 }}>
