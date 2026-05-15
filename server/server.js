@@ -17,7 +17,7 @@ const DEFAULT_EXERCISES = [
     reps: 10,
     notes: 'Daily quest staple',
     beginnerExplanation: 'A bodyweight chest, shoulder, and triceps exercise. Keep the movement slow and controlled; knee push-ups are a valid starting point.',
-    videoUrl: '',
+    videoUrl: 'https://www.youtube.com/watch?v=IODxDxX7oi4',
     imageUrl: '',
     youtubeQuery: 'how to do a push up proper form beginner',
     instructions: [
@@ -42,7 +42,7 @@ const DEFAULT_EXERCISES = [
     reps: 10,
     notes: 'Daily quest staple',
     beginnerExplanation: 'A core exercise that trains trunk flexion. Move from your abs instead of pulling your head or neck.',
-    videoUrl: '',
+    videoUrl: 'https://www.youtube.com/watch?v=1fbU_MkV7NE',
     imageUrl: '',
     youtubeQuery: 'how to do a sit up proper form beginner',
     instructions: [
@@ -67,7 +67,7 @@ const DEFAULT_EXERCISES = [
     reps: 10,
     notes: 'Daily quest staple',
     beginnerExplanation: 'A foundational lower-body pattern for quads, glutes, and balance. Use a chair target until depth feels safe and repeatable.',
-    videoUrl: '',
+    videoUrl: 'https://www.youtube.com/watch?v=aclHkVaku9U',
     imageUrl: '',
     youtubeQuery: 'how to do a bodyweight squat proper form beginner',
     instructions: [
@@ -93,7 +93,7 @@ const DEFAULT_EXERCISES = [
     reps: 1,
     notes: 'Daily quest staple — 10 km goal',
     beginnerExplanation: 'Cardio work that should begin conversational and easy. Walking intervals count while your joints and lungs adapt.',
-    videoUrl: '',
+    videoUrl: 'https://www.youtube.com/watch?v=brFHyOtTwH4',
     imageUrl: '',
     youtubeQuery: 'beginner running form tips couch to 5k',
     instructions: [
@@ -190,8 +190,8 @@ function createDefaultDb() {
       Wednesday: { focus: 'Leg Day', exerciseIds: ['squats'] },
       Thursday: { focus: 'Cardio', exerciseIds: ['run'] },
       Friday: { focus: 'Upper Body', exerciseIds: ['push-ups', 'sit-ups'] },
-      Saturday: { focus: 'Full Body', exerciseIds: ['push-ups', 'sit-ups', 'squats'] },
-      Sunday: { focus: 'Rest / Mobility', exerciseIds: [] }
+      Saturday: { focus: 'Rest / Mobility', exerciseIds: [] },
+      Sunday: { focus: 'Full Rest', exerciseIds: [] }
     },
     meals: [],
     weights: [],
@@ -217,10 +217,21 @@ function mergeDb(parsed = {}) {
     if (!Array.isArray(schedule[day].exerciseIds)) schedule[day].exerciseIds = [];
   }
 
+  const defaultExerciseById = Object.fromEntries(defaults.exercises.map((exercise) => [exercise.id, exercise]));
+  const exercises = Array.isArray(parsed.exercises) ? parsed.exercises.map((exercise) => {
+    const defaultExercise = defaultExerciseById[exercise.id];
+    if (!defaultExercise) return exercise;
+    return {
+      ...exercise,
+      videoUrl: exercise.videoUrl || defaultExercise.videoUrl,
+      youtubeQuery: exercise.youtubeQuery || defaultExercise.youtubeQuery
+    };
+  }) : defaults.exercises;
+
   return {
     ...defaults,
     ...parsed,
-    exercises: Array.isArray(parsed.exercises) ? parsed.exercises : defaults.exercises,
+    exercises,
     schedule,
     meals: Array.isArray(parsed.meals) ? parsed.meals : defaults.meals,
     weights: Array.isArray(parsed.weights) ? parsed.weights : defaults.weights,
